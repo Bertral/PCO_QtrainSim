@@ -38,7 +38,7 @@ int cmain()
     mettre_fonction_loco(loco1.no, ALLUME);
 
     //Sélection et initialisation de la maquette
-    selection_maquette("MAQUET_A");
+    selection_maquette("MAQUET_B");
     afficher_message("Et c'est parti!!");
 
     //Placement de la locomotive entre les contacts 11 et 6

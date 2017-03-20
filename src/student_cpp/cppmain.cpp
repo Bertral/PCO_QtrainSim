@@ -19,25 +19,37 @@ int cmain()
     afficher_message("Hit play to start the simulation...");
 
     //Choix de la maquette
-    selection_maquette(MAQUETTE_A);
+    selection_maquette(MAQUETTE_B);
 
     //Initialisation d'un parcours
     QList<int> parcours;
-    parcours << 7 << 15 << 14 << 7 << 6 << 5 << 34 << 33 << 32 << 25 << 24;
+    parcours << 5 << 7 << 6 << 8 << 26 << 10 << 13 << 9;
 
     //Initialisation des aiguillages
-    diriger_aiguillage(8,  DEVIE,       0);
-    diriger_aiguillage(2,  DEVIE,       0);
-    diriger_aiguillage(20, DEVIE,       0);
-    diriger_aiguillage(14, DEVIE,       0);
-    diriger_aiguillage(11, TOUT_DROIT,  0);
-    diriger_aiguillage(17, TOUT_DROIT,  0);
-    diriger_aiguillage(23, TOUT_DROIT,  0);
+    diriger_aiguillage(1, DEVIE, 0);
+    diriger_aiguillage(2, DEVIE, 0);
+    diriger_aiguillage(3, DEVIE, 0);
+    diriger_aiguillage(4, DEVIE, 0);
+    diriger_aiguillage(5, TOUT_DROIT, 0);
+    diriger_aiguillage(6, TOUT_DROIT, 0);
+    diriger_aiguillage(7, DEVIE, 0);
+    diriger_aiguillage(8, DEVIE, 0);
+    diriger_aiguillage(9, DEVIE, 0);
+    diriger_aiguillage(10, TOUT_DROIT, 0);
+    diriger_aiguillage(11, TOUT_DROIT, 0);
+    diriger_aiguillage(12, DEVIE, 0);
+    diriger_aiguillage(13, DEVIE, 0);
+    diriger_aiguillage(14, DEVIE, 0);
+    diriger_aiguillage(15, TOUT_DROIT, 0);
+    diriger_aiguillage(16, TOUT_DROIT, 0);
+    diriger_aiguillage(17, TOUT_DROIT, 0);
+//    diriger_aiguillage(18, TOUT_DROIT,  0);
+//    diriger_aiguillage(19, TOUT_DROIT,  0);
 
     //Initialisation de la locomotive
     locomotive.fixerNumero(1);
     locomotive.fixerVitesse(12);
-    locomotive.fixerPosition(16, 23);
+    locomotive.fixerPosition(15, 10);
     locomotive.allumerPhares();
     locomotive.demarrer();
     locomotive.afficherMessage("Ready!");
