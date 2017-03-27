@@ -25,7 +25,7 @@ int cmain()
 
     //Initialisation d'un parcours
     QList<int> parcours;
-    parcours << 8 << 20 << 25 << 26;
+    parcours << 7 << 13;
 
     //Initialisation des aiguillages
     diriger_aiguillage(1, DEVIE, 0);
@@ -36,11 +36,11 @@ int cmain()
     diriger_aiguillage(10, DEVIE, 0);
     diriger_aiguillage(13, DEVIE, 0);
     diriger_aiguillage(14, DEVIE, 0);
-    diriger_aiguillage(17, TOUT_DROIT, 0);
+    diriger_aiguillage(17, DEVIE, 0);
 
     //Initialisation de la locomotive
     loco1.fixerNumero(1);
-    loco1.fixerVitesse(6);
+    loco1.fixerVitesse(12);
     loco1.fixerPosition(10, 15);
     loco1.allumerPhares();
     loco1.demarrer();
