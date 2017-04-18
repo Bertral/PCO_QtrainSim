@@ -1,5 +1,6 @@
 #include "ctrain_handler.h"
 #include "locomotive.h"
+#include "locothread.h"
 
 #include <QList>
 
@@ -24,8 +25,9 @@ int cmain()
     selection_maquette(MAQUETTE_B);
 
     //Initialisation d'un parcours
-    QList<int> parcours;
-    parcours << 7 << 13;
+    QVector<int> parcours1{7, 8, 26, 13};
+
+    QVector<int> parcours2{1, 25, 20, 19};
 
     //Initialisation des aiguillages
     diriger_aiguillage(1, DEVIE, 0);
@@ -40,35 +42,37 @@ int cmain()
 
     //Initialisation de la locomotive
     loco1.fixerNumero(1);
-    loco1.fixerVitesse(12);
-    loco1.fixerPosition(10, 15);
-    loco1.allumerPhares();
-    loco1.demarrer();
+    loco1.fixerVitesse(5);
+    loco1.fixerPosition(7, 13);
     loco1.afficherMessage("Ready!");
 
     loco2.fixerNumero(2);
-    loco2.fixerVitesse(12);
+    loco2.fixerVitesse(6);
     loco2.fixerPosition(1, 19);
-    loco2.allumerPhares();
-    loco2.demarrer();
     loco2.afficherMessage("Ready!");
 
     //Attente du passage sur les contacts
-    for (int i = 0; i < parcours.size(); i++) {
-        attendre_contact(parcours.at(i));
-        afficher_message(qPrintable(QString("The engine no. %1 has reached contact no. %2.")
-                                    .arg(loco1.numero()).arg(parcours.at(i))));
-        afficher_message(qPrintable(QString("The engine no. %1 has reached contact no. %2.")
-                                    .arg(loco2.numero()).arg(parcours.at(i))));
-        loco1.afficherMessage(QString("I've reached contact no. %1.").arg(parcours.at(i)));
-        loco2.afficherMessage(QString("I've reached contact no. %1.").arg(parcours.at(i)));
-    }
+//    for (int i = 0; i < parcours.size(); i++) {
+//        attendre_contact(parcours.at(i));
+//        afficher_message(qPrintable(QString("The engine no. %1 has reached contact no. %2.")
+//                                    .arg(loco1.numero()).arg(parcours.at(i))));
+//        afficher_message(qPrintable(QString("The engine no. %1 has reached contact no. %2.")
+//                                    .arg(loco2.numero()).arg(parcours.at(i))));
+//        loco1.afficherMessage(QString("I've reached contact no. %1.").arg(parcours.at(i)));
+//        loco2.afficherMessage(QString("I've reached contact no. %1.").arg(parcours.at(i)));
+//    }
+
+    LocoThread thread1(loco1, parcours1, true);
+    LocoThread thread2(loco2, parcours2, false);
+    thread1.start();
+    thread2.start();
+
 
     //Arreter la locomotive
-    loco1.arreter();
+    thread1.wait();
     loco1.afficherMessage("Yeah, piece of cake!");
 
-    loco2.arreter();
+    thread2.wait();
     loco2.afficherMessage("Yeah, piece of cake!");
 
     //Fin de la simulation
