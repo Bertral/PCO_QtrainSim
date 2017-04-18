@@ -3,12 +3,10 @@
 QSemaphore LocoThread::mutex(1);
 int LocoThread::reservedBy = -1;
 int LocoThread::usedBy = -1;
-QSemaphore LocoThread::criticalSection(1);
+QSemaphore LocoThread::criticalSegment(1);
 
 LocoThread::LocoThread(const Locomotive& loco,
                        const QVector<int>& parcours,
-//                       const QPair<Contact, Contact>& request,
-//                       const QPair<Contact, Contact>& critical,
                        bool priority,
                        QObject *parent) :
     QThread(parent),
@@ -17,6 +15,9 @@ LocoThread::LocoThread(const Locomotive& loco,
     loco(loco)
 {
 }
+
+LocoThread::LocoThread() {}
+
 
 void LocoThread::reverse() {
     std::reverse(parcours.begin(), parcours.end());
@@ -37,13 +38,18 @@ void LocoThread::run() {
         // attendre le contact de requête
         attendre_contact(parcours.at(0));
 
-        // si la loco est prioritaire, elle réserve la section critique
         mutex.acquire();
         if(reservedBy < 0 && priority) {
+            // si la loco est prioritaire, elle réserve la section critique
             reservedBy = loco.numero();
-            mutex.release();
 
-            criticalSection.acquire();
+            if(usedBy < 0) {
+                mutex.release();
+                // si section critique n'est pas occupée, on l'acquire
+                criticalSegment.acquire();
+            } else {
+                mutex.release();
+            }
         } else {
             mutex.release();
         }
@@ -52,38 +58,47 @@ void LocoThread::run() {
         attendre_contact(parcours.at(1));
 
         mutex.acquire();
-        if(usedBy < 0 && (reservedBy == loco.numero() || reservedBy < 0)) {
+        if((reservedBy < 0 || reservedBy == loco.numero()) && usedBy < 0) {
+            // si le segment n'est pas réservé ou utilisé par une autre loco,
+            // on le déclare comme utilisé par nous-même
             usedBy = loco.numero();
 
             if(reservedBy == loco.numero()) {
-                reservedBy = -1;
+                // si on l'avait déjà réservé, on ne l'acquire pas une deuxième fois
                 mutex.release();
             } else {
                 mutex.release();
-                criticalSection.acquire();
+                criticalSegment.acquire();
             }
-
         } else {
             mutex.release();
 
+            // si le segment est utilisé/réservé par une autre loco, on s'arrête
             loco.arreter();
-            criticalSection.acquire();
 
+            // attend la libération de la section critique
+            criticalSegment.acquire();
+
+            // déclare la section comme utilisée par nous même
             mutex.acquire();
             usedBy = loco.numero();
             mutex.release();
 
+            // relance la marche
             loco.demarrer();
         }
 
+        // attendre le contact de sortie de section critique
         attendre_contact(parcours.at(2));
 
+        // libère la résevation et l'utilisation de la section critique
         mutex.acquire();
+        reservedBy = -1;
         usedBy = -1;
         mutex.release();
 
-        criticalSection.release();
-
+        // release la section critique
+        criticalSegment.release();
     }
 
     loco.arreter();

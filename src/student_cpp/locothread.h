@@ -21,7 +21,7 @@ private:
     static QSemaphore mutex;
     static int reservedBy;
     static int usedBy;
-    static QSemaphore criticalSection;
+    static QSemaphore criticalSegment;
 
     bool priority; // 1=first, 0=second
     Locomotive loco;
@@ -37,10 +37,11 @@ private:
     void reverse();
 
 public:
-    explicit LocoThread(const Locomotive& loco,
+    LocoThread(const Locomotive& loco,
                         const QVector<int>& parcours,
                         bool priority,
                         QObject *parent = 0);
+    LocoThread();
 
 signals:
 

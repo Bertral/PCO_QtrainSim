@@ -1,18 +1,37 @@
+/*
+ * Conditions de test :
+ * 1. vitesse loco1 = 5, vitesse loco2 = 6, priorité activée (pour loco 1)
+ * 2. vitesse loco1 = 5, vitesse loco2 = 6, priorité désactivée
+ * 3. vitesse loco1 = 2, vitesse loco2 = 6, priorité activée, vitesse fixée à 1 lors
+ *    de l'entrée en section critique.
+ *
+ *
+ *
+ *
+ */
+
+
 #include "ctrain_handler.h"
 #include "locomotive.h"
 #include "locothread.h"
 
 #include <QList>
 
+const bool ENABLE_PRIORITY = true;
+
 //Creation d'une locomotive
 static Locomotive loco1;
 static Locomotive loco2;
+static LocoThread thread1;
+static LocoThread thread2;
 
 //Arret d'urgence
 void emergency_stop()
 {
     loco1.arreter();
     loco2.arreter();
+    thread1.quit();
+    thread2.quit();
     afficher_message("\nSTOP!");
 }
 
@@ -24,9 +43,14 @@ int cmain()
     //Choix de la maquette
     selection_maquette(MAQUETTE_B);
 
-    //Initialisation d'un parcours
+    /* IMPORTANT :
+     * Les vecteurs de parcours sont composés de 4 éléments comme suit :
+     * 0 : capteur de requête
+     * 1 : capteur de début de section critique
+     * 2 : capteur de fin de section critique
+     * 3 : capteur de requête lors du parcours en sens inverse
+     */
     QVector<int> parcours1{7, 8, 26, 13};
-
     QVector<int> parcours2{1, 25, 20, 19};
 
     //Initialisation des aiguillages
@@ -40,7 +64,7 @@ int cmain()
     diriger_aiguillage(14, DEVIE, 0);
     diriger_aiguillage(17, DEVIE, 0);
 
-    //Initialisation de la locomotive
+    //Initialisation des locomotives
     loco1.fixerNumero(1);
     loco1.fixerVitesse(5);
     loco1.fixerPosition(7, 13);
@@ -51,24 +75,15 @@ int cmain()
     loco2.fixerPosition(1, 19);
     loco2.afficherMessage("Ready!");
 
-    //Attente du passage sur les contacts
-//    for (int i = 0; i < parcours.size(); i++) {
-//        attendre_contact(parcours.at(i));
-//        afficher_message(qPrintable(QString("The engine no. %1 has reached contact no. %2.")
-//                                    .arg(loco1.numero()).arg(parcours.at(i))));
-//        afficher_message(qPrintable(QString("The engine no. %1 has reached contact no. %2.")
-//                                    .arg(loco2.numero()).arg(parcours.at(i))));
-//        loco1.afficherMessage(QString("I've reached contact no. %1.").arg(parcours.at(i)));
-//        loco2.afficherMessage(QString("I've reached contact no. %1.").arg(parcours.at(i)));
-//    }
-
-    LocoThread thread1(loco1, parcours1, true);
+    LocoThread thread1(loco1, parcours1, ENABLE_PRIORITY);
     LocoThread thread2(loco2, parcours2, false);
+
+    // lancement des threads
     thread1.start();
     thread2.start();
 
 
-    //Arreter la locomotive
+    //Arreter les locomotive
     thread1.wait();
     loco1.afficherMessage("Yeah, piece of cake!");
 
