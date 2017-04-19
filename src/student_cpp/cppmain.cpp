@@ -1,10 +1,57 @@
 /*
- * Conditions de test :
- * 1. vitesse loco1 = 5, vitesse loco2 = 6, priorité activée (pour loco 1)
- * 2. vitesse loco1 = 5, vitesse loco2 = 6, priorité désactivée
- * 3. vitesse loco1 = 2, vitesse loco2 = 6, priorité activée, vitesse fixée à 1 lors
- *    de l'entrée en section critique.
+ * UTILISATION :
+ * Selection de la maquette dans cmain().
+ * Initialiser la position des aiguillages dans la fonction cmain().
+ * Idem pour les locomotives (2 loco max, pas testé avec plus que 2).
+ * Idem pour les parcours.
+ * Idem pour les priorités.
+ * Pour choisir entre programme 1 et 2 (sans ou avec priorité), changer
+ * la valeur de la constante "ENABLE_PRIORITY".
+ * Pour changer le nombre de tours à effectuer, changer la constante
+ * NB_TOURS dans le fichier locothread.h.
  *
+ * IMPLEMENTATION :
+ * La classe Locomotive n'a pas été modifiée.
+ * La classe LocoThread permet de contrôler une locomotive de sorte à ce
+ * qu'elle fasse le parcours sans entrer en collision avec une autre loco.
+ *
+ * Le tronçon critique est protégé par le sémaphore criticalSegment.
+ * Pour savoir s'il est libre (tryAcquire est interdit), on utilise un
+ * un entier usedBy. Pour savoir s'il est réservé par une loco prioritaire,
+ * on utilise l'entier reservedBy.
+ * Ces deux variables sont protégées pas le sémaphore "mutex".
+ *
+ * Résumé du déroulement d'un tour :
+ * 1.   Attend le premier contact (celui de requête).
+ * 2.   Si la loco est prioritaire, elle réserve la section critique
+ *      et si, en plus, la section critique est libre,
+ *      elle empêche d'autres loco d'y entrer.
+ * 4.   Attend le deuxième contact (début de section critique).
+ * 5.   Si la section critique n'est pas utilisée ou réservée, la loco
+ *      ne s'arrête pas et empêche d'autres loco d'y entrer (si ce n'était
+ *      pas déjà fait).
+ *      Sinon, elle s'arrête et attend la libération de la section critique.
+ * 6.   Attend le troisième contact (sortie de section critique).
+ * 7.   Réinitialise la réservation/utilisation de la section critique.
+ * 8.   Libère la section critique, pour autoriser d'autres loco à y passer.
+ *
+ *
+ *
+ * TESTS :
+ * 1.   vitesse loco1 = 5, vitesse loco2 = 6, priorité activée (pour loco 1) :
+ *      La loco 2 s'arrête n'entre pas dans la section critique quand la loco 1
+ *      la réserve.
+ *
+ * 2.   vitesse loco1 = 5, vitesse loco2 = 6, priorité désactivée :
+ *      La première loco qui entre en section critique ne s'arrête pas.
+ *      La seconde s'arrête à l'entrée de la section critique puis repart
+ *      quand elle se libère.
+ *
+ * 3.   vitesse loco1 = 2, vitesse loco2 = 6, priorité activée,
+ *      vitesse fixée à 1 lors de l'entrée en section critique :
+ *      La loco2 entre dans la section critique et ralentit. La loco1
+ *      (prioritaire) réserve la section critique, mais s'arrête correctement à
+ *      l'entrée de la section critique, puis repart quand elle se libère.
  *
  *
  *
@@ -28,10 +75,10 @@ static LocoThread thread2;
 //Arret d'urgence
 void emergency_stop()
 {
-    loco1.arreter();
-    loco2.arreter();
     thread1.quit();
     thread2.quit();
+    loco1.arreter();
+    loco2.arreter();
     afficher_message("\nSTOP!");
 }
 

@@ -20,7 +20,9 @@ LocoThread::LocoThread() {}
 
 
 void LocoThread::reverse() {
+    // inverse le parcours
     std::reverse(parcours.begin(), parcours.end());
+    // change le sens de marche
     loco.inverserSens();
 }
 
@@ -45,7 +47,7 @@ void LocoThread::run() {
 
             if(usedBy < 0) {
                 mutex.release();
-                // si section critique n'est pas occupée, on l'acquire
+                // si section critique n'est pas occupée, on acquire()
                 criticalSegment.acquire();
             } else {
                 mutex.release();
@@ -59,12 +61,12 @@ void LocoThread::run() {
 
         mutex.acquire();
         if((reservedBy < 0 || reservedBy == loco.numero()) && usedBy < 0) {
-            // si le segment n'est pas réservé ou utilisé par une autre loco,
+            // si le segment n'est pas réservé ni utilisé par une autre loco,
             // on le déclare comme utilisé par nous-même
             usedBy = loco.numero();
 
             if(reservedBy == loco.numero()) {
-                // si on l'avait déjà réservé, on ne l'acquire pas une deuxième fois
+               // si on l'avait déjà réservé, on ne l'acquire pas une 2eme fois
                 mutex.release();
             } else {
                 mutex.release();
@@ -73,7 +75,8 @@ void LocoThread::run() {
         } else {
             mutex.release();
 
-            // si le segment est utilisé/réservé par une autre loco, on s'arrête
+            // si le segment est utilisé ou réservé par une autre loco,
+            // on s'arrête
             loco.arreter();
 
             // attend la libération de la section critique
