@@ -69,16 +69,16 @@ const bool ENABLE_PRIORITY = true;
 //Creation d'une locomotive
 static Locomotive loco1;
 static Locomotive loco2;
-static LocoThread thread1;
-static LocoThread thread2;
+static LocoThread* thread1;
+static LocoThread* thread2;
 
 //Arret d'urgence
 void emergency_stop()
 {
-    thread1.quit();
-    thread2.quit();
     loco1.arreter();
     loco2.arreter();
+    thread1->requestInterruption();
+    thread2->requestInterruption();
     afficher_message("\nSTOP!");
 }
 
@@ -122,19 +122,19 @@ int cmain()
     loco2.fixerPosition(1, 19);
     loco2.afficherMessage("Ready!");
 
-    LocoThread thread1(loco1, parcours1, ENABLE_PRIORITY);
-    LocoThread thread2(loco2, parcours2, false);
+    thread1 = new LocoThread(loco1, parcours1, ENABLE_PRIORITY);
+    thread2 = new LocoThread(loco2, parcours2, false);
 
     // lancement des threads
-    thread1.start();
-    thread2.start();
+    thread1->start();
+    thread2->start();
 
 
     //Arreter les locomotive
-    thread1.wait();
+    thread1->wait();
     loco1.afficherMessage("Yeah, piece of cake!");
 
-    thread2.wait();
+    thread2->wait();
     loco2.afficherMessage("Yeah, piece of cake!");
 
     //Fin de la simulation

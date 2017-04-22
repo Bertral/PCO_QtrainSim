@@ -26,9 +26,19 @@ void LocoThread::reverse() {
     loco.inverserSens();
 }
 
+void LocoThread::demarrer() {
+    if(isInterruptionRequested()) {
+        loco.arreter();
+        exit(0);
+    } else {
+        loco.demarrer();
+    }
+}
+
 void LocoThread::run() {
+
     loco.allumerPhares();
-    loco.demarrer();
+    demarrer();
 
     // 2 fois dans chaque sens :
     for(int i = 0; i < NB_TOURS; i++) {
@@ -59,6 +69,12 @@ void LocoThread::run() {
         // attendre le contact de section critique
         attendre_contact(parcours.at(1));
 
+        // quitte le thread si nécessaire avant le blocage suivant
+        if(isInterruptionRequested()) {
+            loco.arreter();
+            return;
+        }
+
         mutex.acquire();
         if((reservedBy < 0 || reservedBy == loco.numero()) && usedBy < 0) {
             // si le segment n'est pas réservé ni utilisé par une autre loco,
@@ -88,7 +104,7 @@ void LocoThread::run() {
             mutex.release();
 
             // relance la marche
-            loco.demarrer();
+            demarrer();
         }
 
         // attendre le contact de sortie de section critique

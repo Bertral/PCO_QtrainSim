@@ -80,6 +80,12 @@ private:
      */
     void reverse();
 
+    /**
+     * @brief demarrer la locomotive uniquement si l'arret d'urgence
+     *        n'est pas enclanché
+     */
+    void demarrer();
+
 public:
     /**
      * @brief LocoThread constructeur
