@@ -41,8 +41,8 @@ void LocoThread::run() {
     demarrer();
 
     // 2 fois dans chaque sens :
-    for(int i = 0; i < NB_TOURS; i++) {
-        if(i == NB_TOURS/2) {
+    for(int i = 0; i < NB_TOURS || NB_TOURS < 0; i++) {
+        if(i%2 != 0) {
             attendre_contact(parcours.at(0));
             reverse();
         }

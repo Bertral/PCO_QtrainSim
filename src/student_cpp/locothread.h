@@ -11,7 +11,7 @@
 #include "locomotive.h"
 #include "ctrain_handler.h"
 
-const int NB_TOURS = 4;
+const int NB_TOURS = -1;
 
 using namespace std;
 
